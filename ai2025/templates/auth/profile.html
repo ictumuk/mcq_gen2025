@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Hồ sơ cá nhân - MCQGen{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Hồ sơ cá nhân</h1>
+        <p class="mt-2 text-gray-600 dark:text-gray-400">Quản lý thông tin tài khoản của bạn</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Profile Card -->
+        <div class="lg:col-span-1">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+                <!-- Avatar -->
+                <div class="text-center">
+                    <div class="w-24 h-24 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <span class="text-4xl font-bold text-white">{{ user.username|slice:":1"|upper }}</span>
+                    </div>
+                    <h2 class="mt-4 text-xl font-bold text-gray-900 dark:text-white">{{ user.username }}</h2>
+                    <p class="text-gray-500 dark:text-gray-400">{{ user.email }}</p>
+                </div>
+
+                <!-- Stats -->
+                <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div>
+                            <div class="flex items-center justify-center gap-1 text-2xl font-bold text-yellow-500">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                {{ user.credits }}
+                            </div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Credits</p>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                {{ user.subjects.count }}
+                            </div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Môn học</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Member since -->
+                <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Thành viên từ {{ user.date_joined|date:"d/m/Y" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Form -->
+        <div class="lg:col-span-2">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Chỉnh sửa thông tin</h3>
+                
+                <form method="POST" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Username -->
+                        <div>
+                            <label for="id_username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Tên đăng nhập
+                            </label>
+                            <input type="text" name="username" id="id_username" 
+                                value="{{ form.username.value }}"
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label for="id_email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Email
+                            </label>
+                            <input type="email" name="email" id="id_email" 
+                                value="{{ form.email.value }}"
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        </div>
+
+                        <!-- First Name -->
+                        <div>
+                            <label for="id_first_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Họ
+                            </label>
+                            <input type="text" name="first_name" id="id_first_name" 
+                                value="{{ form.first_name.value|default:'' }}"
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                placeholder="Nguyễn Văn">
+                        </div>
+
+                        <!-- Last Name -->
+                        <div>
+                            <label for="id_last_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Tên
+                            </label>
+                            <input type="text" name="last_name" id="id_last_name" 
+                                value="{{ form.last_name.value|default:'' }}"
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                placeholder="A">
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <a href="{% url 'home' %}" class="px-6 py-3 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            Hủy
+                        </a>
+                        <button type="submit" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-lg shadow-blue-500/30 transition-all hover:scale-105">
+                            Lưu thay đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="mt-8 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800 p-6">
+                <h3 class="text-lg font-semibold text-red-700 dark:text-red-400 mb-2">Vùng nguy hiểm</h3>
+                <p class="text-sm text-red-600 dark:text-red-400 mb-4">Các hành động sau không thể hoàn tác.</p>
+                
+                <div class="flex flex-wrap gap-3">
+                    <button class="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-300 dark:border-red-700 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
+                        Đổi mật khẩu
+                    </button>
+                    <button class="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-300 dark:border-red-700 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
+                        Xóa tài khoản
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

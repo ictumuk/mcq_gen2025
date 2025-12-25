@@ -1,0 +1,13 @@
+Django>=5.2.8
+django-extensions
+django-compressor
+djangorestframework
+python-dotenv
+langgraph
+langchain
+google-genai
+pydantic
+typing-extensions
+PyPDF2
+python-docx
+python-pptx

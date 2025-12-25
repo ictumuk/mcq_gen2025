@@ -1,0 +1,197 @@
+<!-- Add Question Modal -->
+<div id="addQuestionModal" class="fixed inset-0 z-50 hidden overflow-hidden">
+    <!-- Backdrop -->
+    <div class="modal-backdrop fixed inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddQuestionModal()"></div>
+    
+    <!-- Modal Container - Centered with padding -->
+    <div class="fixed inset-4 sm:inset-8 flex items-center justify-center pointer-events-none">
+        <!-- Modal Content - Fixed height structure -->
+        <div class="modal-content pointer-events-auto w-full max-w-4xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl flex flex-col" style="max-height: calc(100vh - 4rem);">
+            
+            <!-- Modal Header - Fixed at top -->
+            <div class="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-t-2xl">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Thêm câu hỏi mới</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Tạo câu hỏi trắc nghiệm thủ công</p>
+                    </div>
+                </div>
+                <button onclick="closeAddQuestionModal()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                    <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal Body - Scrollable -->
+            <div class="flex-1 overflow-y-auto px-6 py-5 modal-body">
+                <form id="addQuestionForm" class="space-y-5">
+                    <!-- Question Content -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            Nội dung câu hỏi <span class="text-red-500">*</span>
+                        </label>
+                        <textarea 
+                            id="newQuestionContent" 
+                            rows="2" 
+                            required
+                            class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
+                            placeholder="Nhập nội dung câu hỏi..."></textarea>
+                    </div>
+
+                    <!-- Options - 2x2 Grid -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                            Các đáp án <span class="text-red-500">*</span>
+                            <span class="ml-2 text-xs font-normal text-gray-500">(Click vào chữ cái để chọn đáp án đúng)</span>
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- Option A -->
+                            <div class="flex items-center gap-2">
+                                <button type="button" 
+                                    id="labelA" 
+                                    onclick="selectCorrectAnswer('A')"
+                                    class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-lg bg-green-500 text-white font-bold cursor-pointer transition-all hover:scale-110 shadow-md shadow-green-500/50">
+                                    A
+                                </button>
+                                <input 
+                                    type="text" 
+                                    id="optionA" 
+                                    required
+                                    class="flex-1 min-w-0 px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    placeholder="Đáp án A">
+                            </div>
+                            <!-- Option B -->
+                            <div class="flex items-center gap-2">
+                                <button type="button" 
+                                    id="labelB" 
+                                    onclick="selectCorrectAnswer('B')"
+                                    class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-lg bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 font-bold cursor-pointer transition-all hover:scale-110">
+                                    B
+                                </button>
+                                <input 
+                                    type="text" 
+                                    id="optionB" 
+                                    required
+                                    class="flex-1 min-w-0 px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    placeholder="Đáp án B">
+                            </div>
+                            <!-- Option C -->
+                            <div class="flex items-center gap-2">
+                                <button type="button" 
+                                    id="labelC" 
+                                    onclick="selectCorrectAnswer('C')"
+                                    class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-lg bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 font-bold cursor-pointer transition-all hover:scale-110">
+                                    C
+                                </button>
+                                <input 
+                                    type="text" 
+                                    id="optionC" 
+                                    required
+                                    class="flex-1 min-w-0 px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    placeholder="Đáp án C">
+                            </div>
+                            <!-- Option D -->
+                            <div class="flex items-center gap-2">
+                                <button type="button" 
+                                    id="labelD" 
+                                    onclick="selectCorrectAnswer('D')"
+                                    class="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-lg bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 font-bold cursor-pointer transition-all hover:scale-110">
+                                    D
+                                </button>
+                                <input 
+                                    type="text" 
+                                    id="optionD" 
+                                    required
+                                    class="flex-1 min-w-0 px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                    placeholder="Đáp án D">
+                            </div>
+                        </div>
+                        <!-- Hidden input to store selected answer -->
+                        <input type="hidden" id="selectedCorrectAnswer" value="A">
+                    </div>
+
+                    <!-- Subject & Difficulty Row -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Subject -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                Môn học
+                            </label>
+                            <div class="space-y-2">
+                                <select id="newQuestionSubjectSelect"
+                                    class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                    <option value="">-- Chọn môn học --</option>
+                                    <option value="__new__">+ Tạo môn học mới</option>
+                                </select>
+                                <input id="newQuestionSubjectInput" type="text"
+                                       class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hidden"
+                                       placeholder="Nhập tên môn học mới, ví dụ: Lịch sử" />
+                            </div>
+                        </div>
+
+                        <!-- Difficulty -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                Độ khó
+                            </label>
+                            <select 
+                                id="newQuestionDifficulty"
+                                class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                <option value="easy">🟢 Dễ</option>
+                                <option value="medium" selected>🟡 Trung bình</option>
+                                <option value="hard">🔴 Khó</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Explanation -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            Giải thích đáp án <span class="text-gray-400 font-normal text-xs">(không bắt buộc)</span>
+                        </label>
+                        <textarea 
+                            id="newQuestionExplanation" 
+                            rows="2" 
+                            class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
+                            placeholder="Giải thích tại sao đáp án đúng..."></textarea>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer - Fixed at bottom -->
+            <div class="flex-shrink-0 flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/80 rounded-b-2xl">
+                <button 
+                    onclick="closeAddQuestionModal()" 
+                    class="px-4 py-2.5 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    Hủy
+                </button>
+                <div class="flex items-center gap-3">
+                    <button 
+                        type="button"
+                        onclick="resetAddQuestionForm()"
+                        class="px-4 py-2.5 text-blue-600 dark:text-blue-400 font-medium rounded-lg border border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Làm mới
+                    </button>
+                    <button 
+                        type="button"
+                        onclick="submitNewQuestion()"
+                        class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-105 transition-all">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Thêm câu hỏi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

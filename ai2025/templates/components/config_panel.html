@@ -1,0 +1,84 @@
+<!-- Configuration Panel Component -->
+<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden top-24 animate-fade-in stagger-3">
+    <div class="border-b border-gray-100 dark:border-gray-700 p-4">
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Cấu Hình
+        </h2>
+    </div>
+
+    <div class="p-4 space-y-6">
+        <!-- Question Type -->
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Loại câu hỏi</label>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-500 rounded-lg cursor-pointer">
+                    <input type="checkbox" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" checked>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Trắc nghiệm</span>
+                </label>
+                <label class="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                    <input type="checkbox" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Đúng/Sai</span>
+                </label>
+                <label class="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                    <input type="checkbox" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Điền chỗ trống</span>
+                </label>
+                <label class="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                    <input type="checkbox" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Tự luận</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Quantity -->
+        <div>
+            <div class="flex justify-between items-center mb-3">
+                <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">Số lượng câu hỏi</label>
+                <span id="quantityValue" class="text-sm font-bold text-blue-600 bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded">10</span>
+            </div>
+            <input type="range" id="quantitySlider" min="1" max="50" value="10" class="w-full h-2 cursor-pointer" style="--progress: 20%">
+            <div class="flex justify-between text-xs text-gray-400 mt-1">
+                <span>1</span>
+                <span>25</span>
+                <span>50</span>
+            </div>
+        </div>
+
+        <!-- Difficulty -->
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Độ khó</label>
+            <div class="flex gap-2">
+                <button data-level="easy" class="flex-1 py-2.5 px-4 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-green-500 hover:text-green-600 transition-colors">Dễ</button>
+                <button data-level="medium" class="flex-1 py-2.5 px-4 text-sm font-medium text-white bg-blue-600 rounded-lg shadow-lg shadow-blue-500/30">Trung bình</button>
+                <button data-level="hard" class="flex-1 py-2.5 px-4 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-red-500 hover:text-red-600 transition-colors">Khó</button>
+            </div>
+            <input type="hidden" id="difficultyValue" value="medium">
+        </div>
+
+        <!-- Language -->
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Ngôn ngữ</label>
+            <div class="relative">
+                <select class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer">
+                    <option value="vi">🇻🇳 Tiếng Việt</option>
+                    <option value="en">🇺🇸 English</option>
+                    <option value="zh">🇨🇳 中文</option>
+                    <option value="ja">🇯🇵 日本語</option>
+                    <option value="ko">🇰🇷 한국어</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        
+    </div>
+</div>
+
