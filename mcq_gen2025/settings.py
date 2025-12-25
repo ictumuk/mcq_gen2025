@@ -58,7 +58,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'ai2025.urls'
+ROOT_URLCONF = 'mcq_gen2025.urls'
 
 TEMPLATES = [
     {
@@ -75,7 +75,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'ai2025.wsgi.application'
+WSGI_APPLICATION = 'mcq_gen2025.wsgi.application'
 
 
 # Database
