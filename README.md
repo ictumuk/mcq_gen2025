@@ -23,8 +23,8 @@ Hệ thống tự động tạo câu hỏi trắc nghiệm (MCQ) từ tài liệ
 ### 1. Clone repository
 
 ```bash
-git clone <repository-url>
-cd MCQs/ai2025
+git clone https://github.com/ictumuk/mcq_gen2025.git
+cd mcq_gen2025
 ```
 
 ### 2. Tạo virtual environment
@@ -53,9 +53,13 @@ npm install
 
 ### 5. Cấu hình environment variables
 
-Tạo file `.env` trong thư mục `ai2025/` dựa trên file `.env.example`:
+Tạo file `.env` trong thư mục root của project:
 
 ```bash
+# Windows
+copy .env.example .env
+
+# Linux/Mac
 cp .env.example .env
 ```
 
@@ -114,16 +118,18 @@ Truy cập ứng dụng tại: http://127.0.0.1:8000/
 ## Cấu trúc dự án
 
 ```
-ai2025/
-├── ai2025/              # Django project settings
+mcq_gen2025/
+├── mcq_gen2025/         # Django project settings
 │   ├── settings.py      # Cấu hình Django
 │   ├── urls.py          # URL routing
-│   └── ...
+│   ├── wsgi.py          # WSGI config
+│   └── asgi.py          # ASGI config
 ├── genmcq/              # Main app
 │   ├── models.py        # Database models
 │   ├── views.py         # View handlers
 │   ├── forms.py         # Forms
-│   └── ...
+│   ├── urls.py          # App URLs
+│   └── migrations/      # Database migrations
 ├── graph/               # MCQ generation workflow
 │   ├── g.py            # Main graph orchestration
 │   ├── gen.py          # Generation functions
@@ -131,11 +137,16 @@ ai2025/
 │   └── review.py       # Review functions
 ├── prompt/             # AI prompts
 ├── templates/          # HTML templates
+│   ├── auth/           # Authentication templates
+│   └── components/     # Reusable components
 ├── static/             # Static files (CSS, JS)
-├── media/              # Uploaded files
-├── .env                # Environment variables (không commit)
-├── .env.example        # Template cho .env
+│   ├── js/             # JavaScript files
+│   └── src/            # Source CSS files
+├── manage.py           # Django management script
 ├── requirements.txt    # Python dependencies
+├── package.json        # Node.js dependencies
+├── .env                # Environment variables (không commit)
+├── .gitignore          # Git ignore rules
 └── README.md          # File này
 ```
 
@@ -182,36 +193,10 @@ worker_pool = WorkerPool(max_workers=1, delay_seconds=20.0)
 ```
 
 ### LangSmith Tracing
-
 Nếu bạn có LangSmith API key, hệ thống sẽ tự động log các traces để theo dõi workflow. Xem traces tại: https://smith.langchain.com/
 
-## Troubleshooting
+## Repository
 
-### Lỗi "GOOGLE_API_KEY environment variable is not set"
-
-- Kiểm tra file `.env` đã được tạo chưa
-- Đảm bảo file `.env` nằm trong thư mục `ai2025/`
-- Kiểm tra tên biến trong `.env` đúng là `GOOGLE_API_KEY`
-
-### Lỗi import dotenv
-
-```bash
-pip install python-dotenv
-```
-
-### CSS không load
-
-Chạy lại build command:
-
-```bash
-npm run build
-```
-
-## Bảo mật
-
-- ⚠️ **KHÔNG** commit file `.env` lên git
-- ⚠️ **KHÔNG** chia sẻ API keys
-- ⚠️ Thay đổi `SECRET_KEY` trong production
-- ⚠️ Đặt `DEBUG=False` trong production
-- ⚠️ Cấu hình `ALLOWED_HOSTS` đúng cho production
+- **GitHub**: https://github.com/ictumuk/mcq_gen2025
+- **License**: [Thêm license của bạn ở đây]
 
