@@ -48,17 +48,17 @@ function createCheckmarkSVG() {
 function setOptionStyle(optItem, isCorrect) {
     const labelSpan = optItem.querySelector('.answer-btn, .w-8.h-8');
     const existingCheck = optItem.querySelector('svg.text-green-500');
-    
+
     if (isCorrect) {
         // Correct answer styling
         optItem.classList.remove('bg-white', 'dark:bg-gray-700', 'border', 'border-gray-200', 'dark:border-gray-600', 'hover:border-blue-400');
         optItem.classList.add('bg-green-50', 'dark:bg-green-900/20', 'border-2', 'border-green-500');
-        
+
         if (labelSpan) {
             labelSpan.classList.remove('bg-gray-200', 'dark:bg-gray-600', 'text-gray-600', 'dark:text-gray-300');
             labelSpan.classList.add('bg-green-500', 'text-white');
         }
-        
+
         // Add checkmark if not exists
         if (!existingCheck) {
             optItem.appendChild(createCheckmarkSVG());
@@ -67,12 +67,12 @@ function setOptionStyle(optItem, isCorrect) {
         // Incorrect answer styling
         optItem.classList.remove('bg-green-50', 'dark:bg-green-900/20', 'border-2', 'border-green-500');
         optItem.classList.add('bg-white', 'dark:bg-gray-700', 'border', 'border-gray-200', 'dark:border-gray-600', 'hover:border-blue-400');
-        
+
         if (labelSpan) {
             labelSpan.classList.remove('bg-green-500', 'text-white');
             labelSpan.classList.add('bg-gray-200', 'dark:bg-gray-600', 'text-gray-600', 'dark:text-gray-300');
         }
-        
+
         // Remove checkmark if exists
         if (existingCheck) {
             existingCheck.remove();
@@ -80,24 +80,9 @@ function setOptionStyle(optItem, isCorrect) {
     }
 }
 
-// Get CSRF token from cookies
-function getCsrfToken() {
-    const name = 'csrftoken';
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
+// Note: getCsrfToken() is now provided by helper.js
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initTabs();
     initCharacterCount();
     initQuantitySlider();
@@ -109,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initSubjectSelect();
     initModalSubjectSelect();
     attachHistoryItemListeners();
-    
+
     // Load existing questions from backend
     loadQuestionsFromBackend();
 });
@@ -120,11 +105,11 @@ document.addEventListener('DOMContentLoaded', function() {
 function initModalAnimations() {
     const modal = document.getElementById('addQuestionModal');
     if (!modal) return;
-    
+
     // Add animation classes
     const backdrop = modal.querySelector('.modal-backdrop');
     const content = modal.querySelector('.modal-content');
-    
+
     if (backdrop) {
         backdrop.style.transition = 'opacity 0.3s ease';
     }
@@ -142,28 +127,28 @@ async function loadQuestionsFromBackend(subjectId = null) {
         if (subjectId) {
             url += `?subject_id=${subjectId}`;
         }
-        
+
         const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
             }
         });
-        
+
         if (!response.ok) {
             // User might not be logged in or no questions yet
             console.log('Could not load questions from backend');
             return;
         }
-        
+
         const data = await response.json();
-        
+
         if (data.success && data.questions && data.questions.length > 0) {
             // Store all questions for pagination
             allQuestions = data.questions;
             currentSubjectId = subjectId;
             currentPage = 1;
-            
+
             // Try to get subject name from various sources
             if (!currentSubjectName) {
                 if (subjectId) {
@@ -175,7 +160,7 @@ async function loadQuestionsFromBackend(subjectId = null) {
                             currentSubjectName = titleElement.textContent.trim();
                         }
                     }
-                    
+
                     // If still not found, try to fetch from history API
                     if (!currentSubjectName) {
                         try {
@@ -185,7 +170,7 @@ async function loadQuestionsFromBackend(subjectId = null) {
                                     'Content-Type': 'application/json',
                                 }
                             });
-                            
+
                             if (historyResponse.ok) {
                                 const historyData = await historyResponse.json();
                                 if (historyData.success && historyData.subjects) {
@@ -209,7 +194,7 @@ async function loadQuestionsFromBackend(subjectId = null) {
                                 'Content-Type': 'application/json',
                             }
                         });
-                        
+
                         if (historyResponse.ok) {
                             const historyData = await historyResponse.json();
                             if (historyData.success && historyData.subjects && historyData.subjects.length > 0) {
@@ -224,7 +209,7 @@ async function loadQuestionsFromBackend(subjectId = null) {
                     }
                 }
             }
-            
+
             // If still not found, try to get from subject select/input
             if (!currentSubjectName) {
                 const subjectSelect = document.getElementById('subjectSelect');
@@ -240,7 +225,7 @@ async function loadQuestionsFromBackend(subjectId = null) {
                     currentSubjectName = subjectInput.value.trim();
                 }
             }
-            
+
             // Display first page
             displayQuestionsPage(1);
             updateQuestionCount();
@@ -268,9 +253,9 @@ async function loadQuestionsFromBackend(subjectId = null) {
 function displayQuestionsPage(page) {
     const emptyState = document.getElementById('emptyState');
     const questionsContainer = document.getElementById('questionsContainer');
-    
+
     if (!questionsContainer) return;
-    
+
     if (allQuestions.length === 0) {
         if (emptyState) emptyState.classList.remove('hidden');
         questionsContainer.classList.add('hidden');
@@ -278,32 +263,32 @@ function displayQuestionsPage(page) {
         updatePaginationControls();
         return;
     }
-    
+
     if (emptyState) emptyState.classList.add('hidden');
     questionsContainer.classList.remove('hidden');
-    
+
     // Calculate pagination
     const totalPages = Math.ceil(allQuestions.length / questionsPerPage);
     const startIndex = (page - 1) * questionsPerPage;
     const questionsToDisplay = Math.min(questionsPerPage, allQuestions.length - startIndex);
     const pageQuestions = allQuestions.slice(startIndex, startIndex + questionsToDisplay);
-    
+
     // Remove any existing scroll handler before clearing
     if (questionsContainer._scrollHandler) {
         questionsContainer.removeEventListener('scroll', questionsContainer._scrollHandler);
         delete questionsContainer._scrollHandler;
     }
-    
+
     // Clear and render all questions for this page
     questionsContainer.innerHTML = '';
-    
+
     // Display all questions for the current page
     pageQuestions.forEach((q, index) => {
         // Calculate correct question number (1-based, global index)
         const questionNumber = startIndex + index + 1;
         addQuestionToUIFromData(q, questionNumber);
     });
-    
+
     // Add pagination controls
     updatePaginationControls(totalPages, page, allQuestions.length);
 }
@@ -314,15 +299,15 @@ function displayQuestionsPage(page) {
 function updatePaginationControls(totalPages = 0, currentPageNum = 1, totalQuestions = 0) {
     const questionsContainer = document.getElementById('questionsContainer');
     if (!questionsContainer) return;
-    
+
     // Remove existing pagination
     const existingPagination = questionsContainer.querySelector('.questions-pagination');
     if (existingPagination) {
         existingPagination.remove();
     }
-    
+
     if (totalPages <= 1 && totalQuestions <= questionsPerPage) return; // No pagination needed
-    
+
     // Create pagination controls
     const paginationHTML = `
         <div class="questions-pagination mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
@@ -345,7 +330,7 @@ function updatePaginationControls(totalPages = 0, currentPageNum = 1, totalQuest
             ` : ''}
         </div>
     `;
-    
+
     questionsContainer.insertAdjacentHTML('beforeend', paginationHTML);
 }
 
@@ -355,10 +340,10 @@ function updatePaginationControls(totalPages = 0, currentPageNum = 1, totalQuest
 function goToQuestionsPage(page) {
     const totalPages = Math.ceil(allQuestions.length / questionsPerPage);
     if (page < 1 || page > totalPages) return;
-    
+
     currentPage = page;
     displayQuestionsPage(page);
-    
+
     // Scroll to top of questions container
     const questionsContainer = document.getElementById('questionsContainer');
     if (questionsContainer) {
@@ -375,31 +360,31 @@ async function loadSubjectQuestions(subjectId) {
         item.classList.remove('bg-blue-50', 'dark:bg-blue-900/20', 'border-blue-500');
         item.classList.add('bg-gray-50', 'dark:bg-gray-700');
     });
-    
+
     const selectedItem = document.querySelector(`[data-subject-id="${subjectId}"]`);
     if (selectedItem) {
         selectedItem.classList.remove('bg-gray-50', 'dark:bg-gray-700');
         selectedItem.classList.add('bg-blue-50', 'dark:bg-blue-900/20', 'border', 'border-blue-500');
-        
+
         // Extract subject name from history item
         const titleElement = selectedItem.querySelector('p.text-sm.font-medium');
         if (titleElement) {
             currentSubjectName = titleElement.textContent.trim();
         }
     }
-    
+
     // Load questions for this subject
     await loadQuestionsFromBackend(subjectId);
-    
+
     // Scroll to questions section after loading
     setTimeout(() => {
         const questionsList = document.getElementById('questionsList');
         const resultsSection = document.getElementById('resultsSection');
         const targetElement = questionsList || resultsSection;
-        
+
         if (targetElement) {
-            targetElement.scrollIntoView({ 
-                behavior: 'smooth', 
+            targetElement.scrollIntoView({
+                behavior: 'smooth',
                 block: 'start',
                 inline: 'nearest'
             });
@@ -417,7 +402,7 @@ async function refreshHistoryPanel() {
                 'Content-Type': 'application/json',
             }
         });
-        
+
         if (response.ok) {
             const data = await response.json();
             if (data.success && data.subjects) {
@@ -439,7 +424,7 @@ async function refreshHistoryPanel() {
 function updateHistoryPanelUI(subjects) {
     const historyContainer = document.querySelector('.bg-white.dark\\:bg-gray-800.rounded-2xl.shadow-xl .p-4.space-y-3');
     if (!historyContainer) return;
-    
+
     if (subjects.length === 0) {
         historyContainer.innerHTML = `
             <div class="px-6 py-16 text-center">
@@ -448,7 +433,7 @@ function updateHistoryPanelUI(subjects) {
         `;
         return;
     }
-    
+
     // Format time ago
     const formatTimeAgo = (isoString) => {
         const date = new Date(isoString);
@@ -457,19 +442,19 @@ function updateHistoryPanelUI(subjects) {
         const diffMins = Math.floor(diffMs / 60000);
         const diffHours = Math.floor(diffMs / 3600000);
         const diffDays = Math.floor(diffMs / 86400000);
-        
+
         if (diffMins < 1) return 'vừa xong';
         if (diffMins < 60) return `${diffMins} phút trước`;
         if (diffHours < 24) return `${diffHours} giờ trước`;
         return `${diffDays} ngày trước`;
     };
-    
+
     // Format difficulty
     const formatDifficulty = (diff) => {
         const map = { 'easy': 'Dễ', 'medium': 'Trung bình', 'hard': 'Khó' };
         return map[diff] || diff;
     };
-    
+
     // Generate history items HTML
     const historyHTML = subjects.map(subj => `
         <div class="history-item flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer transition-colors" 
@@ -497,9 +482,9 @@ function updateHistoryPanelUI(subjects) {
             </div>
         </div>
     `).join('');
-    
+
     historyContainer.innerHTML = historyHTML;
-    
+
     // Re-attach event listeners
     attachHistoryItemListeners();
 }
@@ -524,18 +509,12 @@ function attachHistoryItemListeners() {
 function addQuestionToUIFromData(question, orderNum) {
     const container = document.getElementById('questionsContainer');
     if (!container) return;
-    
-    const difficultyLabels = {
-        'easy': { text: 'Easy', color: 'green' },
-        'medium': { text: 'Medium', color: 'blue' },
-        'hard': { text: 'Hard', color: 'red' }
-    };
-    const difficultyKey = (question.difficulty || 'medium').toLowerCase();
-    const difficultyLabel = difficultyLabels[difficultyKey] || difficultyLabels['medium'];
-    
+
+    const difficultyLabel = getDifficultyLabel(question.difficulty);
+
     const questionHTML = createQuestionCardHTML(question, orderNum, difficultyLabel);
     container.insertAdjacentHTML('beforeend', questionHTML);
-    
+
     // Save original data immediately after rendering for cancel functionality
     const newCard = container.lastElementChild;
     if (newCard) {
@@ -560,12 +539,12 @@ function addQuestionToUIFromData(question, orderNum) {
 function initDarkMode() {
     const darkModeToggle = document.getElementById('darkModeToggle');
     const html = document.documentElement;
-    
+
     // Check for saved dark mode preference
     if (localStorage.getItem('darkMode') === 'true') {
         html.classList.add('dark');
     }
-    
+
     if (darkModeToggle) {
         darkModeToggle.addEventListener('click', () => {
             html.classList.toggle('dark');
@@ -579,13 +558,13 @@ function initDarkMode() {
  */
 function updateUserCredits(credits) {
     if (credits === undefined || credits === null) return;
-    
+
     // Update navbar credits
     const navCredits = document.getElementById('navCredits');
     if (navCredits) {
         navCredits.textContent = `${credits} credits`;
     }
-    
+
     // Update page credits (in generate_mcq.html)
     const pageCredits = document.getElementById('pageCredits');
     if (pageCredits) {
@@ -593,7 +572,7 @@ function updateUserCredits(credits) {
         // but here we just update the numeric part if we want to be safe
         pageCredits.innerHTML = `Bạn có <strong>${credits}</strong> credits`;
     }
-    
+
     // Update dashboard credits
     const dashboardCredits = document.getElementById('dashboardCredits');
     if (dashboardCredits) {
@@ -619,16 +598,16 @@ function initTabs() {
                 t.classList.remove('tab-active');
                 t.classList.add('text-gray-600', 'dark:text-gray-300');
             });
-            
+
             // Add active class to clicked tab
             tab.classList.add('tab-active');
             tab.classList.remove('text-gray-600', 'dark:text-gray-300');
-            
+
             // Hide all tab contents
             Object.values(tabContents).forEach(content => {
                 if (content) content.classList.add('hidden');
             });
-            
+
             // Show selected tab content
             const tabName = tab.dataset.tab;
             if (tabContents[tabName]) {
@@ -644,7 +623,7 @@ function initTabs() {
 function initCharacterCount() {
     const textInput = document.getElementById('textInput');
     const charCount = document.getElementById('charCount');
-    
+
     if (textInput && charCount) {
         textInput.addEventListener('input', () => {
             charCount.textContent = `${textInput.value.length} ký tự`;
@@ -658,11 +637,11 @@ function initCharacterCount() {
 function initQuantitySlider() {
     const quantitySlider = document.getElementById('quantitySlider');
     const quantityValue = document.getElementById('quantityValue');
-    
+
     if (quantitySlider && quantityValue) {
         // Set initial progress
         updateSliderProgress(quantitySlider);
-        
+
         quantitySlider.addEventListener('input', (e) => {
             const value = e.target.value;
             quantityValue.textContent = value;
@@ -692,7 +671,7 @@ async function loadSubjectsList() {
                 'Content-Type': 'application/json',
             }
         });
-        
+
         if (response.ok) {
             const data = await response.json();
             if (data.success && data.subjects && data.subjects.length > 0) {
@@ -710,12 +689,12 @@ async function loadSubjectsList() {
  */
 function populateSubjectSelect(selectElement, subjects) {
     if (!selectElement) return;
-    
+
     const newOption = selectElement.querySelector('option[value="__new__"]');
     // Remove existing subject options (keep default and new option)
     const existingOptions = selectElement.querySelectorAll('option:not([value=""]):not([value="__new__"])');
     existingOptions.forEach(opt => opt.remove());
-    
+
     // Add subjects - subjects can be array of strings (old format) or array of objects (new format)
     subjects.forEach(subject => {
         const option = document.createElement('option');
@@ -743,15 +722,15 @@ function populateSubjectSelect(selectElement, subjects) {
 async function initSubjectSelect() {
     const subjectSelect = document.getElementById('subjectSelect');
     const subjectInput = document.getElementById('subjectInput');
-    
+
     if (!subjectSelect || !subjectInput) return;
-    
+
     // Load and populate subjects
     const subjects = await loadSubjectsList();
     populateSubjectSelect(subjectSelect, subjects);
-    
+
     // Handle select change
-    subjectSelect.addEventListener('change', function() {
+    subjectSelect.addEventListener('change', function () {
         if (this.value === '__new__') {
             // Show input for new subject
             subjectInput.classList.remove('hidden');
@@ -773,9 +752,9 @@ async function initSubjectSelect() {
             subjectInput.value = '';
         }
     });
-    
+
     // Handle input change when creating new subject
-    subjectInput.addEventListener('input', function() {
+    subjectInput.addEventListener('input', function () {
         if (!subjectInput.classList.contains('hidden')) {
             // Ensure select is set to "Tạo môn học mới"
             if (subjectSelect.value !== '__new__') {
@@ -791,15 +770,15 @@ async function initSubjectSelect() {
 async function initModalSubjectSelect() {
     const subjectSelect = document.getElementById('newQuestionSubjectSelect');
     const subjectInput = document.getElementById('newQuestionSubjectInput');
-    
+
     if (!subjectSelect || !subjectInput) return;
-    
+
     // Load and populate subjects
     const subjects = await loadSubjectsList();
     populateSubjectSelect(subjectSelect, subjects);
-    
+
     // Handle select change
-    subjectSelect.addEventListener('change', function() {
+    subjectSelect.addEventListener('change', function () {
         if (this.value === '__new__') {
             // Show input for new subject
             subjectInput.classList.remove('hidden');
@@ -821,9 +800,9 @@ async function initModalSubjectSelect() {
             subjectInput.value = '';
         }
     });
-    
+
     // Handle input change when creating new subject
-    subjectInput.addEventListener('input', function() {
+    subjectInput.addEventListener('input', function () {
         if (!subjectInput.classList.contains('hidden')) {
             // Ensure select is set to "Tạo môn học mới"
             if (subjectSelect.value !== '__new__') {
@@ -846,11 +825,11 @@ function getGenerationPayload() {
     const difficultyValue = document.getElementById('difficultyValue');
 
     const text = textInput ? textInput.value.trim() : '';
-    
+
     // Get subject and subject_id from select or input
     let subject = '';
     let subject_id = null;
-    
+
     if (subjectSelect && subjectSelect.value === '__new__' && subjectInput) {
         // New subject from input
         subject = subjectInput.value.trim();
@@ -872,7 +851,7 @@ function getGenerationPayload() {
         subject = subjectInput.value.trim();
         subject_id = null;
     }
-    
+
     const topic = topicInput ? topicInput.value.trim() : '';
     const key_point = keyPointInput ? keyPointInput.value.trim() : '';
     const number_contexts = quantitySlider ? parseInt(quantitySlider.value, 10) || 3 : 3;
@@ -890,12 +869,12 @@ function getGenerationPayload() {
         max_workers: 1,
         delay_seconds: 5.0
     };
-    
+
     // Add subject_id if available
     if (subject_id) {
         payload.subject_id = subject_id;
     }
-    
+
     return payload;
 }
 
@@ -981,29 +960,29 @@ function initFileUpload() {
 
     // Click to upload
     uploadZone.addEventListener('click', () => fileInput.click());
-    
+
     // Drag and drop handlers
     uploadZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         uploadZone.classList.add('dragover');
     });
-    
+
     uploadZone.addEventListener('dragleave', () => {
         uploadZone.classList.remove('dragover');
     });
-    
+
     uploadZone.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadZone.classList.remove('dragover');
         const files = e.dataTransfer.files;
         if (files.length) handleFile(files[0]);
     });
-    
+
     // File input change
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length) handleFile(e.target.files[0]);
     });
-    
+
     let uploadInProgress = false;
 
     // Handle file selection
@@ -1014,7 +993,7 @@ function initFileUpload() {
             alert('File quá lớn! Vui lòng chọn file nhỏ hơn 10MB.');
             return;
         }
-        
+
         // Validate file type
         const allowedTypes = ['.pdf', '.docx', '.pptx', '.txt'];
         const fileExt = '.' + file.name.split('.').pop().toLowerCase();
@@ -1022,10 +1001,10 @@ function initFileUpload() {
             alert('Định dạng file không được hỗ trợ! Vui lòng chọn file PDF, DOCX, PPTX hoặc TXT.');
             return;
         }
-        
+
         if (fileName) fileName.textContent = file.name;
         if (fileSize) fileSize.textContent = formatFileSize(file.size);
-        
+
         uploadZone.classList.add('hidden');
         if (filePreview) filePreview.classList.remove('hidden');
         updateUploadedBadge(); // show badge when file is selected
@@ -1060,7 +1039,7 @@ function initFileUpload() {
             updateUploadedBadge();
         }
     }
-    
+
     // Remove file
     if (removeFile) {
         removeFile.addEventListener('click', () => {
@@ -1106,16 +1085,16 @@ function initGenerateButton() {
         const textInput = document.getElementById('textInput');
         const activeTab = document.querySelector('.input-tab.tab-active');
         const tabName = activeTab ? activeTab.dataset.tab : 'text';
-        
+
         if (tabName === 'text' && textInput && textInput.value.trim().length < 50) {
             showToast('Vui lòng nhập ít nhất 50 ký tự văn bản!', 'error');
             textInput.focus();
             return;
         }
-        
+
         // Build payload
         let payload = getGenerationPayload();
-        
+
         // If file tab, upload file first
         if (tabName === 'file') {
             const fileInput = document.getElementById('fileInput');
@@ -1146,12 +1125,12 @@ function initGenerateButton() {
         } else {
             payload.source_type = 'text';
         }
-        
+
         // Show loading state
         if (loadingState) loadingState.classList.remove('hidden');
         if (emptyState) emptyState.classList.add('hidden');
         if (questionsContainer) questionsContainer.classList.add('hidden');
-        
+
         // Disable button and show loading
         const originalContent = generateBtn.innerHTML;
         generateBtn.disabled = true;
@@ -1161,7 +1140,7 @@ function initGenerateButton() {
             </svg>
             Đang xử lý...
         `;
-        
+
         try {
             const response = await fetch('/api/generate-mcq/', {
                 method: 'POST',
@@ -1171,20 +1150,20 @@ function initGenerateButton() {
                 },
                 body: JSON.stringify(payload)
             });
-            
+
             const data = await response.json();
-            
+
             if (!response.ok || !data.success) {
                 throw new Error(data.error || 'Không thể tạo câu hỏi');
             }
-            
+
             showToast('Đã tạo câu hỏi thành công!', 'success');
-            
+
             // Update credits if available
             if (data.user_credits !== undefined) {
                 updateUserCredits(data.user_credits);
             }
-            
+
             // Update current subject info if available
             if (data.subject_id) {
                 currentSubjectId = data.subject_id;
@@ -1192,17 +1171,17 @@ function initGenerateButton() {
             if (data.subject) {
                 currentSubjectName = data.subject;
             }
-            
+
             // Reload questions for the newly created subject
             if (data.subject_id) {
                 await loadQuestionsFromBackend(data.subject_id);
             } else {
                 await loadQuestionsFromBackend();
             }
-            
+
             // Refresh history panel
             await refreshHistoryPanel();
-            
+
         } catch (err) {
             console.error(err);
             showToast(err.message || 'Có lỗi khi tạo câu hỏi', 'error');
@@ -1212,7 +1191,7 @@ function initGenerateButton() {
             // Hide loading
             if (loadingState) loadingState.classList.add('hidden');
             if (questionsContainer) questionsContainer.classList.remove('hidden');
-            
+
             // Restore button
             generateBtn.disabled = false;
             generateBtn.innerHTML = originalContent;
@@ -1237,17 +1216,17 @@ function initDifficultyButtons() {
 function setupDifficultyButtons(buttons) {
     const diffInput = document.getElementById('difficultyValue');
     buttons.forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             // Reset all buttons
             buttons.forEach(b => {
                 b.classList.remove('text-white', 'bg-blue-600', 'shadow-lg', 'shadow-blue-500/30');
                 b.classList.add('text-gray-600', 'dark:text-gray-300', 'bg-gray-50', 'dark:bg-gray-700', 'border', 'border-gray-200', 'dark:border-gray-600');
             });
-            
+
             // Activate clicked button
             this.classList.remove('text-gray-600', 'dark:text-gray-300', 'bg-gray-50', 'dark:bg-gray-700', 'border', 'border-gray-200', 'dark:border-gray-600');
             this.classList.add('text-white', 'bg-blue-600', 'shadow-lg', 'shadow-blue-500/30');
-            
+
             // Update hidden difficulty value
             if (diffInput && this.dataset.level) {
                 diffInput.value = this.dataset.level;
@@ -1261,14 +1240,14 @@ function setupDifficultyButtons(buttons) {
  */
 function initQuestionTypeCheckboxes() {
     const checkboxLabels = document.querySelectorAll('.grid.grid-cols-2.gap-2 > label');
-    
+
     checkboxLabels.forEach(label => {
         const checkbox = label.querySelector('input[type="checkbox"]');
         if (checkbox) {
             // Update initial state
             updateCheckboxStyle(label, checkbox.checked);
-            
-            checkbox.addEventListener('change', function() {
+
+            checkbox.addEventListener('change', function () {
                 updateCheckboxStyle(label, this.checked);
             });
         }
@@ -1305,23 +1284,23 @@ function exportToExcel() {
 
 function exportToJSON() {
     const data = getQuestionsData();
-    
+
     // Check if there are questions to export
     if (!data.questions || data.questions.length === 0) {
         showToast('Không có câu hỏi nào để xuất!', 'warning');
         return;
     }
-    
+
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    
+
     // Generate filename with subject name if available
     const subjectName = data.subject ? data.subject.replace(/[^a-zA-Z0-9]/g, '_') : 'questions';
     const timestamp = new Date().toISOString().split('T')[0];
     a.download = `${subjectName}_${timestamp}.json`;
-    
+
     a.click();
     URL.revokeObjectURL(url);
     showToast('Đã xuất file JSON thành công!', 'success');
@@ -1348,12 +1327,12 @@ function getQuestionsData() {
     // Get subject information - prioritize currentSubjectName (set when loading from history)
     let subject = currentSubjectName || '';
     let subject_id = currentSubjectId;
-    
+
     // If subject name not available, try to get from select or input
     if (!subject) {
         const subjectSelect = document.getElementById('subjectSelect');
         const subjectInput = document.getElementById('subjectInput');
-        
+
         if (subjectSelect && subjectSelect.value === '__new__' && subjectInput) {
             // New subject from input
             subject = subjectInput.value.trim();
@@ -1376,7 +1355,7 @@ function getQuestionsData() {
         } else if (currentSubjectId) {
             // If we have currentSubjectId but no name, try to find from history items
             subject_id = currentSubjectId;
-            
+
             // Try from history items in DOM
             const historyItem = document.querySelector(`[data-subject-id="${currentSubjectId}"]`);
             if (historyItem) {
@@ -1385,19 +1364,19 @@ function getQuestionsData() {
                     subject = titleElement.textContent.trim();
                 }
             }
-            
+
             // If still not found and we have currentSubjectName, use it
             if (!subject && currentSubjectName) {
                 subject = currentSubjectName;
             }
-            
+
             // Last resort: use subject_id as fallback
             if (!subject) {
                 subject = `Subject_${currentSubjectId.substring(0, 8)}`;
             }
         }
     }
-    
+
     // Fallback if still no subject name - try to get from questions if available
     if (!subject && allQuestions.length > 0) {
         // Try to get from first question's metadata if available
@@ -1406,13 +1385,13 @@ function getQuestionsData() {
     } else if (!subject) {
         subject = 'Unknown Subject';
     }
-    
+
     // Get questions from allQuestions array (contains all loaded questions)
     const questions = allQuestions.map(q => {
         // Extract correct answer
         const correctOption = q.options?.find(opt => opt.is_correct);
         const correctAnswer = correctOption ? correctOption.id : null;
-        
+
         return {
             id: q.id,
             stem: q.stem || q.content || '',
@@ -1431,7 +1410,7 @@ function getQuestionsData() {
             updated_at: q.updated_at || null
         };
     });
-    
+
     // Return structured data with subject info
     return {
         subject: subject || 'Unknown',
@@ -1446,26 +1425,26 @@ function formatQuestionsAsText(questions) {
     if (!questions || questions.length === 0) {
         return 'Không có câu hỏi nào';
     }
-    
+
     return questions.map((q, i) => {
         // Support both old format (question) and new format (stem)
         const questionText = q.stem || q.question || q.content || '';
         let text = `Câu ${i + 1}: ${questionText}\n`;
-        
+
         if (q.options && q.options.length > 0) {
             // Support both old format (array of strings) and new format (array of objects)
             q.options.forEach((opt, j) => {
                 const letter = String.fromCharCode(65 + j);
                 const optText = typeof opt === 'string' ? opt : (opt.text || opt.id || '');
                 // Support both old format (correct as index) and new format (is_correct flag)
-                const isCorrect = typeof opt === 'string' 
-                    ? (j === q.correct || j === q.correct_answer) 
+                const isCorrect = typeof opt === 'string'
+                    ? (j === q.correct || j === q.correct_answer)
                     : (opt.is_correct || opt.id === q.correct_answer);
                 const marker = isCorrect ? '✓' : ' ';
                 text += `  ${letter}. ${optText} ${marker}\n`;
             });
         }
-        
+
         if (q.explanation) {
             text += `\nGiải thích: ${q.explanation}\n`;
         }
@@ -1486,17 +1465,17 @@ function addNewQuestion() {
 function openAddQuestionModal() {
     const modal = document.getElementById('addQuestionModal');
     if (!modal) return;
-    
+
     const backdrop = modal.querySelector('.modal-backdrop');
     const content = modal.querySelector('.modal-content');
-    
+
     // Show modal
     modal.classList.remove('hidden');
-    
+
     // Trigger animations
     requestAnimationFrame(() => {
         modal.classList.add('show');
-        
+
         if (backdrop) {
             backdrop.style.opacity = '1';
         }
@@ -1505,10 +1484,10 @@ function openAddQuestionModal() {
             content.style.transform = 'scale(1) translateY(0)';
         }
     });
-    
+
     // Prevent body scroll
     document.body.style.overflow = 'hidden';
-    
+
     // Focus on first input with smooth transition
     setTimeout(() => {
         const firstInput = document.getElementById('newQuestionContent');
@@ -1528,13 +1507,13 @@ function openAddQuestionModal() {
 function closeAddQuestionModal() {
     const modal = document.getElementById('addQuestionModal');
     if (!modal) return;
-    
+
     const backdrop = modal.querySelector('.modal-backdrop');
     const content = modal.querySelector('.modal-content');
-    
+
     // Animate out
     modal.classList.remove('show');
-    
+
     if (backdrop) {
         backdrop.style.opacity = '0';
     }
@@ -1542,12 +1521,12 @@ function closeAddQuestionModal() {
         content.style.opacity = '0';
         content.style.transform = 'scale(0.95) translateY(20px)';
     }
-    
+
     // Wait for animation then hide
     setTimeout(() => {
         modal.classList.add('hidden');
         document.body.style.overflow = '';
-        
+
         // Reset styles for next open
         if (backdrop) backdrop.style.opacity = '';
         if (content) {
@@ -1566,7 +1545,7 @@ function selectCorrectAnswer(letter) {
     if (hiddenInput) {
         hiddenInput.value = letter;
     }
-    
+
     // Update all label buttons
     ['A', 'B', 'C', 'D'].forEach(l => {
         const label = document.getElementById('label' + l);
@@ -1580,7 +1559,7 @@ function selectCorrectAnswer(letter) {
             }
         }
     });
-    
+
     console.log('Selected correct answer:', letter);
 }
 
@@ -1606,7 +1585,7 @@ function resetAddQuestionForm() {
     document.getElementById('newQuestionExplanation').value = '';
     document.getElementById('newQuestionBloom').value = 'understand';
     document.getElementById('newQuestionDifficulty').value = 'medium';
-    
+
     // Reset correct answer selection to A
     selectCorrectAnswer('A');
 }
@@ -1625,13 +1604,13 @@ async function submitNewQuestion() {
     const bloom = document.getElementById('newQuestionBloom')?.value || '';
     const difficulty = document.getElementById('newQuestionDifficulty').value;
     const correctAnswer = document.getElementById('selectedCorrectAnswer')?.value || 'A';
-    
+
     // Get subject and subject_id from modal select or input
     const subjectSelect = document.getElementById('newQuestionSubjectSelect');
     const subjectInput = document.getElementById('newQuestionSubjectInput');
     let subject = '';
     let subject_id = null;
-    
+
     if (subjectSelect && subjectSelect.value === '__new__' && subjectInput) {
         // New subject from input
         subject = subjectInput.value.trim();
@@ -1665,11 +1644,11 @@ async function submitNewQuestion() {
         }, 500);
         return;
     }
-    
+
     // Validate options
     const optionInputs = ['optionA', 'optionB', 'optionC', 'optionD'];
     const optionValues = [optionA, optionB, optionC, optionD];
-    
+
     for (let i = 0; i < optionValues.length; i++) {
         if (!optionValues[i]) {
             const input = document.getElementById(optionInputs[i]);
@@ -1698,7 +1677,7 @@ async function submitNewQuestion() {
         difficulty: difficulty,
         subject: subject  // Include subject in request
     };
-    
+
     // Add subject_id if available
     if (subject_id) {
         questionData.subject_id = subject_id;
@@ -1732,12 +1711,12 @@ async function submitNewQuestion() {
             showToast('Đã thêm câu hỏi mới thành công!', 'success');
             resetAddQuestionForm();
             closeAddQuestionModal();
-            
+
             // Update credits if available
             if (data.user_credits !== undefined) {
                 updateUserCredits(data.user_credits);
             }
-            
+
             // Reload questions from backend to avoid duplicates and update history
             await loadQuestionsFromBackend();
             await refreshHistoryPanel();
@@ -1756,7 +1735,7 @@ async function submitNewQuestion() {
             difficulty: difficulty,
             user_edited: true
         };
-        
+
         // In offline mode, still try to reload from backend
         await loadQuestionsFromBackend();
         await refreshHistoryPanel();
@@ -1834,7 +1813,7 @@ function createQuestionCardHTML(question, orderNum, difficultyLabel) {
 function addQuestionToUI(question) {
     const container = document.getElementById('questionsContainer');
     const emptyState = document.getElementById('emptyState');
-    
+
     if (!container) return;
 
     // Hide empty state with animation
@@ -1849,17 +1828,11 @@ function addQuestionToUI(question) {
     }
     container.classList.remove('hidden');
 
-    const difficultyLabels = {
-        'easy': { text: 'Easy', color: 'green' },
-        'medium': { text: 'Medium', color: 'blue' },
-        'hard': { text: 'Hard', color: 'red' }
-    };
-    const difficultyKey = (question.difficulty || 'medium').toLowerCase();
-    const difficultyLabel = difficultyLabels[difficultyKey] || difficultyLabels['medium'];
+    const difficultyLabel = getDifficultyLabel(question.difficulty);
 
     // Calculate order number
     const orderNum = document.querySelectorAll('.question-card').length + 1;
-    
+
     // Create and insert question card
     const questionHTML = createQuestionCardHTML(question, orderNum, difficultyLabel);
     container.insertAdjacentHTML('beforeend', questionHTML);
@@ -1877,7 +1850,7 @@ function addQuestionToUI(question) {
 
     // Update question count with animation
     updateQuestionCount();
-    
+
     // Scroll to new question
     const newCard = container.lastElementChild;
     if (newCard) {
@@ -1887,92 +1860,9 @@ function addQuestionToUI(question) {
     }
 }
 
-/**
- * Show Toast Notification with enhanced animation
- */
-function showToast(message, type = 'info') {
-    // Remove existing toasts with animation
-    const existingToasts = document.querySelectorAll('.toast-notification');
-    existingToasts.forEach(t => {
-        t.style.opacity = '0';
-        t.style.transform = 'translateX(100%)';
-        setTimeout(() => t.remove(), 200);
-    });
+// Note: showToast() and closeToast() are now provided by helper.js
 
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = 'toast-notification fixed top-20 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg transition-all duration-300';
-    
-    // Set color based on type
-    const colors = {
-        success: 'bg-green-500 text-white shadow-green-500/30',
-        error: 'bg-red-500 text-white shadow-red-500/30',
-        warning: 'bg-yellow-500 text-white shadow-yellow-500/30',
-        info: 'bg-blue-500 text-white shadow-blue-500/30'
-    };
-    toast.className += ' ' + (colors[type] || colors.info);
-
-    // Set icon
-    const icons = {
-        success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>',
-        error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
-        warning: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>',
-        info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'
-    };
-
-    // Initial state for animation
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateX(100%)';
-
-    toast.innerHTML = `
-        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            ${icons[type] || icons.info}
-        </svg>
-        <span class="text-sm font-medium">${escapeHtml(message)}</span>
-        <button onclick="closeToast(this.parentElement)" class="ml-2 hover:opacity-70 transition-opacity">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </button>
-    `;
-
-    document.body.appendChild(toast);
-
-    // Trigger entrance animation
-    requestAnimationFrame(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateX(0)';
-    });
-
-    // Auto remove after 4 seconds
-    setTimeout(() => closeToast(toast), 4000);
-}
-
-/**
- * Close Toast with animation
- */
-function closeToast(toast) {
-    if (!toast || !toast.parentElement) return;
-    
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateX(100%)';
-    setTimeout(() => toast.remove(), 300);
-}
-
-/**
- * Escape HTML to prevent XSS
- */
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// Normalize text for display: convert <br> to newline
-function formatDisplayText(text) {
-    if (!text) return '';
-    return String(text).replace(/<br\s*\/?>/gi, '\n');
-}
+// Note: escapeHtml() and formatDisplayText() are now provided by helper.js
 
 /**
  * Edit Question - Show update button
@@ -1980,13 +1870,13 @@ function formatDisplayText(text) {
 function editQuestion(questionId) {
     const card = document.querySelector(`[data-question-id="${questionId}"]`);
     if (!card) return;
-    
+
     // Toggle edit mode - highlight editable fields
     const editableFields = card.querySelectorAll('[contenteditable="true"]');
     editableFields.forEach(field => {
         field.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
     });
-    
+
     // Show update button if not already visible
     let updateBtn = card.querySelector('.update-btn');
     if (!updateBtn) {
@@ -2004,7 +1894,7 @@ function editQuestion(questionId) {
             actionsDiv.insertBefore(btn, actionsDiv.firstChild);
         }
     }
-    
+
     showToast('Chỉnh sửa nội dung, click đáp án để chọn đáp án đúng, nhấn ✓ để lưu', 'info');
 }
 
@@ -2014,15 +1904,15 @@ function editQuestion(questionId) {
 async function updateQuestion(questionId) {
     const card = document.querySelector(`[data-question-id="${questionId}"]`);
     if (!card) return;
-    
+
     // Get updated values from contenteditable fields
     const stemField = card.querySelector('[data-field="stem"]');
     const explanationField = card.querySelector('[data-field="explanation"]');
     const optionFields = card.querySelectorAll('[data-field^="option-"]');
-    
+
     const content = stemField ? stemField.textContent.trim() : '';
     const explanation = explanationField ? explanationField.textContent.trim() : '';
-    
+
     // Build options array
     const options = [];
     optionFields.forEach(field => {
@@ -2035,10 +1925,10 @@ async function updateQuestion(questionId) {
             is_correct: isCorrect
         });
     });
-    
+
     // Find correct answer
     const correctAnswer = options.find(opt => opt.is_correct)?.id || 'A';
-    
+
     // Show loading
     const updateBtn = card.querySelector('.update-btn');
     if (updateBtn) {
@@ -2049,7 +1939,7 @@ async function updateQuestion(questionId) {
             </svg>
         `;
     }
-    
+
     try {
         // Skip API call for local questions
         if (questionId.startsWith('local_')) {
@@ -2057,7 +1947,7 @@ async function updateQuestion(questionId) {
             removeEditHighlight(card);
             return;
         }
-        
+
         const response = await fetch(API_ENDPOINTS.updateQuestion(questionId), {
             method: 'POST',
             headers: {
@@ -2071,9 +1961,9 @@ async function updateQuestion(questionId) {
                 explanation: explanation
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             showToast('Đã lưu thay đổi!', 'success');
             removeEditHighlight(card);
@@ -2106,11 +1996,11 @@ const originalQuestionData = new Map();
 function saveOriginalData(card) {
     const questionId = card.dataset.questionId;
     if (!questionId || originalQuestionData.has(questionId)) return;
-    
+
     const stemField = card.querySelector('[data-field="stem"]');
     const explanationField = card.querySelector('[data-field="explanation"]');
     const optionItems = card.querySelectorAll('.option-item');
-    
+
     const options = [];
     optionItems.forEach(optItem => {
         const optField = optItem.querySelector('[data-field^="option-"]');
@@ -2122,7 +2012,7 @@ function saveOriginalData(card) {
             is_correct: isCorrect
         });
     });
-    
+
     originalQuestionData.set(questionId, {
         stem: stemField ? stemField.textContent.trim() : '',
         explanation: explanationField ? explanationField.textContent.trim() : '',
@@ -2131,7 +2021,7 @@ function saveOriginalData(card) {
 }
 
 // Save original data when user focuses on editable field (BEFORE any changes)
-document.addEventListener('focusin', function(e) {
+document.addEventListener('focusin', function (e) {
     if (e.target.matches('[contenteditable="true"]')) {
         const card = e.target.closest('.question-card');
         if (card) {
@@ -2141,7 +2031,7 @@ document.addEventListener('focusin', function(e) {
 });
 
 // Save original data when user is about to click on option (BEFORE any changes)
-document.addEventListener('mousedown', function(e) {
+document.addEventListener('mousedown', function (e) {
     const optItem = e.target.closest('.option-item');
     if (optItem) {
         const card = optItem.closest('.question-card');
@@ -2157,7 +2047,7 @@ document.addEventListener('mousedown', function(e) {
 function cancelEdit(questionId) {
     const card = document.querySelector(`[data-question-id="${questionId}"]`);
     if (!card) return;
-    
+
     const originalData = originalQuestionData.get(questionId);
     if (originalData) {
         // Restore stem
@@ -2165,31 +2055,31 @@ function cancelEdit(questionId) {
         if (stemField) {
             stemField.textContent = originalData.stem;
         }
-        
+
         // Restore explanation
         const explanationField = card.querySelector('[data-field="explanation"]');
         if (explanationField) {
             explanationField.textContent = originalData.explanation;
         }
-        
+
         // Restore options text and correct answer styling
         originalData.options.forEach(opt => {
             const optField = card.querySelector(`[data-field="option-${opt.id}"]`);
             if (optField) {
                 optField.textContent = opt.text;
             }
-            
+
             // Restore correct answer styling using helper
             const optItem = optField ? optField.closest('.option-item') : null;
             if (optItem) {
                 setOptionStyle(optItem, opt.is_correct);
             }
         });
-        
+
         // Clear saved data
         originalQuestionData.delete(questionId);
     }
-    
+
     removeEditHighlight(card);
     showToast('Đã hủy thay đổi', 'info');
 }
@@ -2202,19 +2092,19 @@ function removeEditHighlight(card) {
     editableFields.forEach(field => {
         field.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50', 'dark:bg-blue-900/20');
     });
-    
+
     // Remove update button
     const updateBtn = card.querySelector('.update-btn');
     if (updateBtn) {
         updateBtn.remove();
     }
-    
+
     // Remove cancel button
     const cancelBtn = card.querySelector('.cancel-btn');
     if (cancelBtn) {
         cancelBtn.remove();
     }
-    
+
     // Clear original data
     const questionId = card.dataset.questionId;
     if (questionId) {
@@ -2228,11 +2118,11 @@ function removeEditHighlight(card) {
 function showUpdateButtonOnChange(card) {
     const questionId = card.dataset.questionId;
     if (!questionId) return;
-    
+
     // Check if buttons already exist
     let updateBtn = card.querySelector('.update-btn');
     if (updateBtn) return;
-    
+
     const actionsDiv = card.querySelector('.flex.items-center.gap-1');
     if (actionsDiv) {
         // Add Update button
@@ -2246,7 +2136,7 @@ function showUpdateButtonOnChange(card) {
             </svg>
         `;
         actionsDiv.insertBefore(btn, actionsDiv.firstChild);
-        
+
         // Add Cancel button
         const cancelBtnEl = document.createElement('button');
         cancelBtnEl.className = 'cancel-btn p-1.5 bg-gray-400 hover:bg-gray-500 text-white rounded-lg transition-smooth animate-success-pop';
@@ -2262,7 +2152,7 @@ function showUpdateButtonOnChange(card) {
 }
 
 // Listen for content changes in question cards
-document.addEventListener('input', function(e) {
+document.addEventListener('input', function (e) {
     if (e.target.matches('[contenteditable="true"]')) {
         const card = e.target.closest('.question-card');
         if (card) {
@@ -2276,42 +2166,42 @@ document.addEventListener('input', function(e) {
  */
 function selectCorrectOption(card, optionId) {
     if (!card) return;
-    
+
     const options = card.querySelectorAll('.option-item');
-    
+
     options.forEach(optItem => {
         const optField = optItem.querySelector('[data-field^="option-"]');
         const currentOptId = optField ? optField.dataset.field.replace('option-', '') : '';
         setOptionStyle(optItem, currentOptId === optionId);
     });
-    
+
     // Show update button
     showUpdateButtonOnChange(card);
 }
 
 // Listen for clicks on option items to change correct answer
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
     const optItem = e.target.closest('.option-item');
     if (!optItem) return;
-    
+
     // Don't trigger if clicking on contenteditable text
     if (e.target.matches('[contenteditable="true"]')) return;
-    
+
     const card = optItem.closest('.question-card');
     if (!card) return;
-    
+
     const optField = optItem.querySelector('[data-field^="option-"]');
     if (!optField) return;
-    
+
     const optionId = optField.dataset.field.replace('option-', '');
     selectCorrectOption(card, optionId);
 });
 
 // Close modal on backdrop click (scoped to modal only to avoid accidental close)
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
     const modal = document.getElementById('addQuestionModal');
     if (!modal || modal.classList.contains('hidden')) return;
-    
+
     // Only close when clicking directly on backdrop (not on content)
     if (e.target.classList.contains('modal-backdrop')) {
         closeAddQuestionModal();
@@ -2319,7 +2209,7 @@ document.addEventListener('click', function(e) {
 });
 
 // Close modal on Escape key
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
         closeAddQuestionModal();
     }
@@ -2332,13 +2222,13 @@ async function deleteQuestion(questionId) {
     if (!confirm('Bạn có chắc muốn xóa câu hỏi này?')) {
         return;
     }
-    
+
     const questionCard = document.querySelector(`[data-question-id="${questionId}"]`);
     if (!questionCard) return;
-    
+
     // Add exit animation
     questionCard.classList.add('animate-card-exit');
-    
+
     try {
         // Try to delete from backend if it's a real ID (UUID)
         if (!questionId.startsWith('local_')) {
@@ -2349,9 +2239,9 @@ async function deleteQuestion(questionId) {
                     'X-CSRFToken': getCsrfToken()
                 }
             });
-            
+
             const data = await response.json();
-            
+
             if (!data.success) {
                 console.warn('Backend delete failed:', data.error);
             }
@@ -2359,13 +2249,13 @@ async function deleteQuestion(questionId) {
     } catch (error) {
         console.log('Could not delete from backend:', error);
     }
-    
+
     // Remove from UI after animation
     setTimeout(() => {
         questionCard.remove();
         updateQuestionCount();
         reorderQuestionNumbers();
-        
+
         // Show empty state if no questions left
         const remainingQuestions = document.querySelectorAll('.question-card');
         if (remainingQuestions.length === 0) {
@@ -2380,7 +2270,7 @@ async function deleteQuestion(questionId) {
             }
             if (container) container.classList.add('hidden');
         }
-        
+
         showToast('Đã xóa câu hỏi', 'success');
     }, 300);
 }

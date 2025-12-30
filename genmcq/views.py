@@ -50,6 +50,7 @@ def generate_mcq(request):
     subjects = request.user.subjects.all().order_by('-updated_at')[:3]
     context = {
         'subjects': subjects,
+        'credits': request.user.credits
     }
     return render(request, 'generate_mcq.html', context)
 

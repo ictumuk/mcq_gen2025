@@ -8,18 +8,20 @@
     <!-- Page Header -->
     <div class="text-center mb-10">
         <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
-            Tạo Câu Hỏi <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Trắc Nghiệm</span>
+            Tạo Câu Hỏi <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Trắc
+                Nghiệm</span>
         </h1>
         <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Sử dụng AI để tự động tạo câu hỏi trắc nghiệm từ văn bản, tài liệu hoặc liên kết web
         </p>
-        
+
         {% if user.is_authenticated %}
         <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
             <svg class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                <path
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
-            <span id="pageCredits" class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Bạn có <strong>{{ user.credits }}</strong> credits</span>
+            <span id="pageCredits" class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Bạn có <strong>{{ credits|default:0 }}</strong> credits</span>
         </div>
         {% endif %}
     </div>
@@ -38,12 +40,12 @@
         <div class="lg:col-span-1 space-y-6">
             <!-- Configuration Panel -->
             {% include 'components/config_panel.html' %}
-            
+
             {% if user.is_authenticated %}
             <!-- History Panel -->
             {% include 'components/history_panel.html' with subjects=subjects|default:"" %}
             {% endif %}
-            
+
             <!-- Export Panel -->
             {% include 'components/export_panel.html' %}
         </div>
@@ -55,9 +57,11 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <div
+                    class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
                 </div>
                 <span class="font-bold text-gray-900 dark:text-white">MCQ<span class="text-blue-600">Gen</span></span>
@@ -72,5 +76,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/helper.js' %}"></script>
 <script src="{% static 'js/controlgen.js' %}"></script>
 {% endblock %}
