@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import (
     User, SourceFile, ExtractedMedia, 
-    Subject, Context, Question, GenerationLog
+    Subject, Context, Question, GenerationLog,
+    ChatRoom, ChatRoomMember, RoomMessage, RoomFile
 )
 
 
@@ -168,3 +169,47 @@ class GenerationLogAdmin(admin.ModelAdmin):
     def message_preview(self, obj):
         return obj.message[:50] + '...' if len(obj.message) > 50 else obj.message
     message_preview.short_description = 'Message'
+
+
+# ============== CHAT ROOM ADMIN ==============
+
+@admin.register(ChatRoom)
+class ChatRoomAdmin(admin.ModelAdmin):
+    list_display = ['name', 'room_type', 'created_by', 'member_count', 'online_count', 'bot_enabled', 'is_active', 'created_at']
+    list_filter = ['room_type', 'is_active', 'bot_enabled', 'created_at']
+    search_fields = ['name', 'description', 'created_by__username']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    def member_count(self, obj):
+        return obj.member_count
+    member_count.short_description = 'Thành viên'
+    
+    def online_count(self, obj):
+        return obj.online_count
+    online_count.short_description = 'Online'
+
+
+@admin.register(ChatRoomMember)
+class ChatRoomMemberAdmin(admin.ModelAdmin):
+    list_display = ['user', 'room', 'role', 'status', 'joined_at', 'last_seen']
+    list_filter = ['role', 'status', 'joined_at']
+    search_fields = ['user__username', 'room__name']
+
+
+@admin.register(RoomMessage)
+class RoomMessageAdmin(admin.ModelAdmin):
+    list_display = ['content_preview', 'sender', 'room', 'is_bot_message', 'is_pinned', 'created_at']
+    list_filter = ['is_bot_message', 'is_pinned', 'created_at']
+    search_fields = ['content', 'sender__username', 'room__name']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    def content_preview(self, obj):
+        return obj.content[:50] + '...' if len(obj.content) > 50 else obj.content
+    content_preview.short_description = 'Nội dung'
+
+
+@admin.register(RoomFile)
+class RoomFileAdmin(admin.ModelAdmin):
+    list_display = ['name', 'room', 'file_type', 'uploaded_by', 'file_size', 'is_processed', 'uploaded_at']
+    list_filter = ['file_type', 'is_processed', 'uploaded_at']
+    search_fields = ['name', 'room__name', 'uploaded_by__username']

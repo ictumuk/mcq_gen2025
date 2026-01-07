@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .room_views_pkg import room_views, room_api
 
 urlpatterns = [
     # Main pages
@@ -31,4 +32,22 @@ urlpatterns = [
     # Source file upload
     path('api/source/upload/', views.api_upload_source, name='api-upload-source'),
     
+    # ===== Chat Room URLs =====
+    # Room page views
+    path('rooms/', room_views.room_list, name='room-list'),
+    path('rooms/create/', room_views.room_create, name='room-create'),
+    path('rooms/<uuid:room_id>/', room_views.room_chat, name='room-chat'),
+    path('rooms/<uuid:room_id>/join/', room_views.room_join, name='room-join'),
+    path('rooms/<uuid:room_id>/leave/', room_views.room_leave, name='room-leave'),
+    path('rooms/<uuid:room_id>/settings/', room_views.room_settings, name='room-settings'),
+    
+    # Room API endpoints
+    path('api/rooms/<uuid:room_id>/messages/', room_api.RoomMessagesAPI.as_view(), name='api-room-messages'),
+    path('api/rooms/<uuid:room_id>/members/', room_api.RoomMembersAPI.as_view(), name='api-room-members'),
+    path('api/rooms/<uuid:room_id>/typing/', room_api.RoomTypingAPI.as_view(), name='api-room-typing'),
+    path('api/rooms/<uuid:room_id>/files/', room_api.RoomFilesAPI.as_view(), name='api-room-files'),
+    path('api/rooms/<uuid:room_id>/bot/toggle/', room_api.RoomBotToggleAPI.as_view(), name='api-room-bot-toggle'),
+    path('api/rooms/<uuid:room_id>/files/<uuid:file_id>/chat/', room_api.RoomFileChatAPI.as_view(), name='api-file-chat'),
+    path('api/rooms/<uuid:room_id>/messages/<uuid:message_id>/pin/', room_api.RoomPinMessageAPI.as_view(), name='api-pin-message'),
 ]
+

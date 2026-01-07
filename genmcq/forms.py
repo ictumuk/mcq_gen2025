@@ -84,3 +84,104 @@ class ProfileForm(forms.ModelForm):
             'first_name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Họ'}),
             'last_name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Tên'}),
         }
+
+
+# =============================================================================
+# Chat Room Forms (CR-BE-040, CR-BE-041, CR-BE-042)
+# =============================================================================
+
+class RoomCreateForm(forms.Form):
+    """Form for creating a new chat room"""
+    name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Tên phòng chat',
+        })
+    )
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-input',
+            'placeholder': 'Mô tả phòng (tùy chọn)',
+            'rows': 2,
+        })
+    )
+    room_type = forms.ChoiceField(
+        choices=[
+            ('community', 'Cộng đồng'),
+            ('work', 'Công việc'),
+            ('ai_deep', 'Chuyên sâu AI'),
+        ],
+        widget=forms.RadioSelect(attrs={'class': 'form-radio'})
+    )
+    has_password = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-checkbox'})
+    )
+    password = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Mật khẩu (nếu có)',
+        })
+    )
+    bot_enabled = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={'class': 'form-checkbox'})
+    )
+
+
+class RoomJoinForm(forms.Form):
+    """Form for joining a password-protected room"""
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Nhập mật khẩu phòng',
+            'autofocus': True,
+        })
+    )
+
+
+class RoomSettingsForm(forms.Form):
+    """Form for room settings (host only)"""
+    name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-input'})
+    )
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-input',
+            'rows': 3,
+        })
+    )
+    room_type = forms.ChoiceField(
+        choices=[
+            ('community', 'Cộng đồng'),
+            ('work', 'Công việc'),
+            ('ai_deep', 'Chuyên sâu AI'),
+        ],
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    has_password = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-checkbox'})
+    )
+    new_password = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Mật khẩu mới (để trống nếu không đổi)',
+        })
+    )
+    bot_enabled = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-checkbox'})
+    )
+    is_active = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={'class': 'form-checkbox'})
+    )

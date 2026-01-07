@@ -1,0 +1,692 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ room.name }} - Phòng Chat{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Custom scrollbar for chat */
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+
+    .dark .chat-messages::-webkit-scrollbar-thumb {
+        background: #475569;
+    }
+
+    /* Typing animation */
+    @keyframes typing {
+
+        0%,
+        60%,
+        100% {
+            opacity: 0.3;
+        }
+
+        30% {
+            opacity: 1;
+        }
+    }
+
+    .typing-dot {
+        animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="h-[calc(100vh-4rem)] flex" x-data="chatRoomApp()">
+
+    <!-- Main Chat Area -->
+    <div class="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900">
+
+        <!-- Chat Header -->
+        <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <!-- Back button -->
+                    <a href="{% url 'room-list' %}"
+                        class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </a>
+
+                    <!-- Room Info -->
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            {{ room.name|default:"Phòng Chat Demo" }}
+                            <span
+                                class="px-2 py-0.5 text-xs font-medium rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                                💬 {{ room.room_type|default:"community" }}
+                            </span>
+                        </h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            <span x-text="onlineMembers.length"></span> người đang online
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <!-- Bot Toggle -->
+                    <button @click="toggleBot()"
+                        :class="botEnabled ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'"
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition"
+                        :title="botEnabled ? 'Tắt Bot' : 'Bật Bot'">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <span x-text="botEnabled ? 'Bot ON' : 'Bot OFF'"></span>
+                    </button>
+
+                    <!-- Settings -->
+                    <button @click="showSettings = true"
+                        class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </button>
+
+                    <!-- Leave -->
+                    <a href="{% url 'room-list' %}"
+                        class="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-xl font-medium transition">
+                        Rời phòng
+                    </a>
+                </div>
+            </div>
+
+            <!-- Pinned Messages -->
+            <template x-if="pinnedMessages.length > 0">
+                <div
+                    class="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+                    <div class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        </svg>
+                        <div class="flex-1">
+                            <p class="text-amber-800 dark:text-amber-200 text-sm font-medium">Tin nhắn ghim</p>
+                            <p class="text-amber-700 dark:text-amber-300 text-sm" x-text="pinnedMessages[0].content">
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="flex-1 overflow-y-auto chat-messages p-6 space-y-4" id="messagesContainer">
+            <template x-for="msg in messages" :key="msg.id">
+                <div :class="msg.is_mine ? 'flex justify-end' : 'flex justify-start'">
+                    <div :class="msg.is_mine ? 'order-2' : 'order-1'" class="flex items-end gap-2">
+                        <!-- Avatar (not for own messages) -->
+                        <template x-if="!msg.is_mine">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                                :class="msg.is_bot ? 'bg-blue-500' : 'bg-gradient-to-br from-blue-500 to-purple-500'"
+                                x-text="msg.is_bot ? '🤖' : msg.sender.charAt(0).toUpperCase()">
+                            </div>
+                        </template>
+
+                        <!-- Message Bubble -->
+                        <div :class="msg.is_mine 
+                            ? 'bg-blue-600 text-white rounded-2xl rounded-br-md' 
+                            : msg.is_bot 
+                                ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-900 dark:text-indigo-100 rounded-2xl rounded-bl-md border border-indigo-200 dark:border-indigo-800'
+                                : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-2xl rounded-bl-md shadow-sm border border-gray-200 dark:border-gray-700'"
+                            class="max-w-lg px-4 py-3">
+
+                            <!-- Sender name (for others) -->
+                            <template x-if="!msg.is_mine">
+                                <p class="text-xs font-semibold mb-1"
+                                    :class="msg.is_bot ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'"
+                                    x-text="msg.is_bot ? '🤖 Bot' : msg.sender">
+                                </p>
+                            </template>
+
+                            <!-- Message content -->
+                            <p class="whitespace-pre-wrap" x-html="formatMessage(msg.content)"></p>
+
+                            <!-- File attachment -->
+                            <template x-if="msg.file">
+                                <div class="mt-2 p-2 bg-white/20 dark:bg-black/20 rounded-lg flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                    </svg>
+                                    <span class="text-sm" x-text="msg.file.name"></span>
+                                </div>
+                            </template>
+
+                            <!-- Time -->
+                            <p class="text-xs mt-1 opacity-70" x-text="msg.time"></p>
+
+                            <!-- Thread replies indicator -->
+                            <template x-if="msg.thread_count > 0">
+                                <button @click="openThread(msg)"
+                                    class="mt-2 text-xs flex items-center gap-1 hover:underline">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                    </svg>
+                                    <span x-text="msg.thread_count + ' phản hồi'"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Typing Indicator -->
+            <template x-if="typingUsers.length > 0">
+                <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
+                    <div class="flex gap-1">
+                        <span class="typing-dot w-2 h-2 bg-gray-400 rounded-full"></span>
+                        <span class="typing-dot w-2 h-2 bg-gray-400 rounded-full"></span>
+                        <span class="typing-dot w-2 h-2 bg-gray-400 rounded-full"></span>
+                    </div>
+                    <span x-text="typingUsers.join(', ') + ' đang soạn tin...'"></span>
+                </div>
+            </template>
+        </div>
+
+        <!-- Message Input -->
+        <div class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
+            <form @submit.prevent="sendMessage()" class="flex items-end gap-3">
+                <!-- File Upload -->
+                <button type="button" @click="$refs.fileInput.click()"
+                    class="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                </button>
+                <input type="file" x-ref="fileInput" @change="handleFileSelect($event)" class="hidden" multiple>
+
+                <!-- Emoji (placeholder) -->
+                <button type="button" class="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </button>
+
+                <!-- Text Input -->
+                <div class="flex-1 relative">
+                    <textarea x-model="messageInput" @keydown.enter.prevent="if(!$event.shiftKey) sendMessage()"
+                        @input="handleTyping()" rows="1"
+                        class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-0 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 resize-none"
+                        placeholder="Nhập tin nhắn... @mention hoặc /command"></textarea>
+
+                    <!-- Mention/Command suggestions -->
+                    <template x-if="showSuggestions">
+                        <div
+                            class="absolute bottom-full left-0 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 mb-2 py-2 max-h-48 overflow-y-auto">
+                            <template x-for="suggestion in suggestions" :key="suggestion.value">
+                                <button @click="applySuggestion(suggestion)" type="button"
+                                    class="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white">
+                                    <span class="font-medium" x-text="suggestion.label"></span>
+                                    <span class="text-gray-500 text-sm ml-2" x-text="suggestion.description"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Send Button -->
+                <button type="submit" :disabled="!messageInput.trim()"
+                    :class="messageInput.trim() ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed'"
+                    class="p-3 rounded-xl text-white transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </button>
+            </form>
+
+            <!-- Selected files preview -->
+            <template x-if="selectedFiles.length > 0">
+                <div class="mt-3 flex flex-wrap gap-2">
+                    <template x-for="(file, index) in selectedFiles" :key="index">
+                        <div class="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span class="text-sm text-gray-700 dark:text-gray-300" x-text="file.name"></span>
+                            <button @click="removeFile(index)" type="button" class="text-gray-400 hover:text-red-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div
+        class="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col hidden lg:flex">
+
+        <!-- Tabs -->
+        <div class="flex border-b border-gray-200 dark:border-gray-700">
+            <button @click="activeTab = 'members'"
+                :class="activeTab === 'members' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500'"
+                class="flex-1 py-3 text-sm font-medium border-b-2 transition">
+                Thành viên
+            </button>
+            <button @click="activeTab = 'files'"
+                :class="activeTab === 'files' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500'"
+                class="flex-1 py-3 text-sm font-medium border-b-2 transition">
+                File
+            </button>
+        </div>
+
+        <!-- Members Tab -->
+        <div x-show="activeTab === 'members'" class="flex-1 overflow-y-auto p-4 space-y-2">
+            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-3">
+                Online — <span x-text="onlineMembers.length"></span>
+            </p>
+            <template x-for="member in onlineMembers" :key="member.id">
+                <div
+                    class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    <div class="relative">
+                        <div class="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                            x-text="member.name.charAt(0).toUpperCase()">
+                        </div>
+                        <span
+                            class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-gray-800"
+                            :class="{
+                                'bg-green-500': member.status === 'online',
+                                'bg-yellow-500': member.status === 'away',
+                                'bg-red-500': member.status === 'busy',
+                                'bg-gray-400': member.status === 'offline'
+                            }"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium text-gray-900 dark:text-white text-sm truncate" x-text="member.name"></p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400"
+                            x-text="member.role === 'host' ? '👑 Host' : ''"></p>
+                    </div>
+                </div>
+            </template>
+
+            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mt-4 mb-3">
+                Offline — <span x-text="offlineMembers.length"></span>
+            </p>
+            <template x-for="member in offlineMembers" :key="member.id">
+                <div class="flex items-center gap-3 p-2 rounded-lg opacity-50">
+                    <div class="w-9 h-9 bg-gray-400 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                        x-text="member.name.charAt(0).toUpperCase()">
+                    </div>
+                    <p class="font-medium text-gray-600 dark:text-gray-400 text-sm truncate" x-text="member.name"></p>
+                </div>
+            </template>
+        </div>
+
+        <!-- Files Tab -->
+        <div x-show="activeTab === 'files'" class="flex-1 overflow-y-auto p-4 space-y-3">
+            <template x-for="file in roomFiles" :key="file.id">
+                <div
+                    class="p-3 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer transition group">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :class="{
+                                'bg-red-100 dark:bg-red-900/30 text-red-600': file.type === 'pdf',
+                                'bg-blue-100 dark:bg-blue-900/30 text-blue-600': file.type === 'docx',
+                                'bg-green-100 dark:bg-green-900/30 text-green-600': file.type === 'xlsx',
+                                'bg-purple-100 dark:bg-purple-900/30 text-purple-600': file.type === 'image'
+                            }">
+                            <span class="text-lg"
+                                x-text="file.type === 'pdf' ? '📄' : file.type === 'docx' ? '📝' : file.type === 'xlsx' ? '📊' : '🖼️'"></span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-medium text-gray-900 dark:text-white text-sm truncate" x-text="file.name">
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400"
+                                x-text="file.size + ' • ' + file.uploaded_by"></p>
+                        </div>
+                    </div>
+                    <button @click="chatWithFile(file)"
+                        class="mt-2 w-full py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition opacity-0 group-hover:opacity-100">
+                        💬 Chat với file
+                    </button>
+                </div>
+            </template>
+
+            <template x-if="roomFiles.length === 0">
+                <div class="text-center py-8">
+                    <svg class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Chưa có file nào</p>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- File Chat Modal (RAG Mode) -->
+    <div x-show="showFileChatModal" x-cloak class="fixed inset-0 z-50 flex">
+        <div class="fixed inset-0 bg-black/50" @click="showFileChatModal = false"></div>
+
+        <div class="relative flex-1 flex m-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+            <!-- File Preview -->
+            <div
+                class="w-1/2 bg-gray-100 dark:bg-gray-900 p-6 overflow-auto border-r border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-gray-900 dark:text-white" x-text="selectedFile?.name"></h3>
+                    <button @click="showFileChatModal = false"
+                        class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-6 min-h-[400px]">
+                    <p class="text-gray-600 dark:text-gray-400">[PDF/File Preview would render here]</p>
+                    <p class="mt-4 text-gray-500">Nội dung file mẫu: Báo cáo doanh thu năm 2026 cho thấy tăng trưởng 20%
+                        so với năm trước...</p>
+                </div>
+            </div>
+
+            <!-- File Chat -->
+            <div class="w-1/2 flex flex-col">
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="font-bold text-gray-900 dark:text-white">💬 Chat với File</h3>
+                    <p class="text-sm text-gray-500">Hỏi AI về nội dung file này</p>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 space-y-3">
+                    <template x-for="msg in fileChatMessages" :key="msg.id">
+                        <div :class="msg.is_user ? 'flex justify-end' : 'flex justify-start'">
+                            <div :class="msg.is_user ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'"
+                                class="max-w-[80%] px-4 py-3 rounded-2xl">
+                                <p x-text="msg.content"></p>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <form @submit.prevent="sendFileChatMessage()" class="flex gap-2">
+                        <input type="text" x-model="fileChatInput"
+                            class="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-900 dark:text-white"
+                            placeholder="Hỏi về file này...">
+                        <button type="submit" class="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+                            Gửi
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function chatRoomApp() {
+        return {
+            // State
+            activeTab: 'members',
+            botEnabled: true,
+            showSettings: false,
+            showSuggestions: false,
+            showFileChatModal: false,
+            messageInput: '',
+            selectedFiles: [],
+            selectedFile: null,
+            fileChatInput: '',
+            typingTimeout: null,
+
+            // Mock data
+            messages: [
+                { id: 1, sender: 'Nguyễn Văn A', content: 'Xin chào mọi người! 👋', time: '10:30', is_mine: false, is_bot: false, thread_count: 0 },
+                { id: 2, sender: 'Bot', content: 'Chào bạn! Tôi là trợ lý ảo của phòng. Gõ /help để xem các lệnh có sẵn.', time: '10:31', is_mine: false, is_bot: true, thread_count: 0 },
+                { id: 3, sender: 'Trần Thị B', content: '@Nguyễn Văn A check file báo cáo nhé 📎', time: '10:32', is_mine: false, is_bot: false, thread_count: 3 },
+                { id: 4, sender: 'Me', content: 'OK, mình đã xem rồi. Có vài điểm cần thảo luận thêm.', time: '10:35', is_mine: true, is_bot: false, thread_count: 0 },
+            ],
+
+            pinnedMessages: [
+                { id: 1, content: 'Mật khẩu WiFi: abc123 | Link Google Drive: bit.ly/xxx' }
+            ],
+
+            members: [
+                { id: 1, name: 'Nguyễn Văn A', status: 'online', role: 'host' },
+                { id: 2, name: 'Trần Thị B', status: 'online', role: 'member' },
+                { id: 3, name: 'Lê Văn C', status: 'away', role: 'member' },
+                { id: 4, name: 'Phạm D', status: 'busy', role: 'member' },
+                { id: 5, name: 'Hoàng E', status: 'offline', role: 'member' },
+            ],
+
+            roomFiles: [
+                { id: 1, name: 'Báo_cáo_2026.pdf', type: 'pdf', size: '2.4 MB', uploaded_by: 'Nguyễn Văn A' },
+                { id: 2, name: 'Data_thống_kê.xlsx', type: 'xlsx', size: '1.2 MB', uploaded_by: 'Trần Thị B' },
+                { id: 3, name: 'Diagram.png', type: 'image', size: '450 KB', uploaded_by: 'Lê Văn C' },
+            ],
+
+            typingUsers: [],
+            suggestions: [],
+            fileChatMessages: [],
+
+            // Mock bot responses
+            botResponses: {
+                'chào bot': 'Chào bạn! Tôi là trợ lý ảo của phòng. Tôi có thể giúp bạn tóm tắt file hoặc tìm thông tin.',
+                '/help': 'Các lệnh có sẵn:\n• /summary - Tóm tắt chat\n• /status - Xem trạng thái phòng\n• @bot + câu hỏi - Hỏi bot',
+                '/summary': '📝 Tóm tắt:\n• 15 tin nhắn trong 1 giờ qua\n• Chủ đề chính: Thảo luận báo cáo Q4\n• File mới: Bao_cao_2026.pdf',
+                '/status': '📊 Trạng thái phòng:\n• 4 thành viên đang hoạt động\n• 3 file đã chia sẻ\n• Bot: Đang hoạt động',
+            },
+
+            // Computed
+            get onlineMembers() {
+                return this.members.filter(m => m.status !== 'offline');
+            },
+            get offlineMembers() {
+                return this.members.filter(m => m.status === 'offline');
+            },
+
+            // Methods
+            init() {
+                this.scrollToBottom();
+                // Simulate typing
+                setTimeout(() => {
+                    this.typingUsers = ['Trần Thị B'];
+                    setTimeout(() => this.typingUsers = [], 3000);
+                }, 5000);
+            },
+
+            scrollToBottom() {
+                this.$nextTick(() => {
+                    const container = document.getElementById('messagesContainer');
+                    if (container) container.scrollTop = container.scrollHeight;
+                });
+            },
+
+            formatMessage(content) {
+                // Format @mentions
+                return content.replace(/@(\w+)/g, '<span class="text-blue-400 font-medium">@$1</span>');
+            },
+
+            sendMessage() {
+                if (!this.messageInput.trim()) return;
+
+                const content = this.messageInput.trim();
+
+                // Add user message
+                this.messages.push({
+                    id: Date.now(),
+                    sender: 'Me',
+                    content: content,
+                    time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+                    is_mine: true,
+                    is_bot: false,
+                    thread_count: 0,
+                    file: this.selectedFiles.length > 0 ? this.selectedFiles[0] : null
+                });
+
+                this.messageInput = '';
+                this.selectedFiles = [];
+                this.scrollToBottom();
+
+                // Check for bot commands
+                if (this.botEnabled) {
+                    const lowerContent = content.toLowerCase();
+                    let botResponse = null;
+
+                    for (const [keyword, response] of Object.entries(this.botResponses)) {
+                        if (lowerContent.includes(keyword)) {
+                            botResponse = response;
+                            break;
+                        }
+                    }
+
+                    if (lowerContent.includes('@bot') || lowerContent.startsWith('/')) {
+                        botResponse = botResponse || 'Tôi hiểu câu hỏi của bạn. Đây là câu trả lời mẫu từ chatbot. Trong phiên bản thực tế, tôi sẽ sử dụng AI để trả lời chính xác hơn.';
+                    }
+
+                    if (botResponse) {
+                        setTimeout(() => {
+                            this.messages.push({
+                                id: Date.now(),
+                                sender: 'Bot',
+                                content: botResponse,
+                                time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+                                is_mine: false,
+                                is_bot: true,
+                                thread_count: 0
+                            });
+                            this.scrollToBottom();
+                        }, 1000);
+                    }
+                }
+            },
+
+            handleTyping() {
+                // Check for @ or / for suggestions
+                const lastWord = this.messageInput.split(' ').pop();
+
+                if (lastWord.startsWith('@')) {
+                    this.suggestions = this.members.map(m => ({
+                        value: '@' + m.name.replace(/\s/g, ''),
+                        label: '@' + m.name,
+                        description: m.role
+                    }));
+                    this.showSuggestions = true;
+                } else if (lastWord.startsWith('/')) {
+                    this.suggestions = [
+                        { value: '/help', label: '/help', description: 'Xem hướng dẫn' },
+                        { value: '/summary', label: '/summary', description: 'Tóm tắt chat' },
+                        { value: '/status', label: '/status', description: 'Trạng thái phòng' },
+                    ];
+                    this.showSuggestions = true;
+                } else {
+                    this.showSuggestions = false;
+                }
+            },
+
+            applySuggestion(suggestion) {
+                const words = this.messageInput.split(' ');
+                words.pop();
+                words.push(suggestion.value);
+                this.messageInput = words.join(' ') + ' ';
+                this.showSuggestions = false;
+            },
+
+            handleFileSelect(event) {
+                this.selectedFiles = Array.from(event.target.files);
+            },
+
+            removeFile(index) {
+                this.selectedFiles.splice(index, 1);
+            },
+
+            toggleBot() {
+                this.botEnabled = !this.botEnabled;
+
+                // Add system message
+                this.messages.push({
+                    id: Date.now(),
+                    sender: 'System',
+                    content: this.botEnabled ? '🤖 Bot đã được bật' : '🤖 Bot đã được tắt',
+                    time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+                    is_mine: false,
+                    is_bot: true,
+                    thread_count: 0
+                });
+                this.scrollToBottom();
+            },
+
+            openThread(msg) {
+                // TODO: Open thread view
+                console.log('Open thread for message:', msg.id);
+            },
+
+            chatWithFile(file) {
+                this.selectedFile = file;
+                this.fileChatMessages = [
+                    { id: 1, content: 'Tôi đã đọc file "' + file.name + '". Bạn muốn hỏi gì về file này?', is_user: false }
+                ];
+                this.showFileChatModal = true;
+            },
+
+            sendFileChatMessage() {
+                if (!this.fileChatInput.trim()) return;
+
+                // Add user message
+                this.fileChatMessages.push({
+                    id: Date.now(),
+                    content: this.fileChatInput,
+                    is_user: true
+                });
+
+                const question = this.fileChatInput;
+                this.fileChatInput = '';
+
+                // Mock AI response
+                setTimeout(() => {
+                    let response = 'Dựa trên tài liệu, ';
+                    if (question.toLowerCase().includes('tóm tắt')) {
+                        response += 'có 3 điểm chính:\n1. Doanh thu tăng 20%\n2. Lợi nhuận ròng đạt 50 tỷ\n3. Mở rộng 3 chi nhánh mới';
+                    } else if (question.toLowerCase().includes('ngày')) {
+                        response += 'ngày báo cáo được lập là 15/12/2025.';
+                    } else {
+                        response += 'đây là thông tin mẫu từ AI. Trong phiên bản thực tế, tôi sẽ phân tích nội dung file để trả lời chính xác hơn.';
+                    }
+
+                    this.fileChatMessages.push({
+                        id: Date.now(),
+                        content: response,
+                        is_user: false
+                    });
+                }, 1000);
+            }
+        }
+    }
+</script>
+{% endblock %}
